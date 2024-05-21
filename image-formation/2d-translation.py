@@ -59,23 +59,3 @@ dst = cv.warpAffine(img, translation_matrix, (cols,rows))
 # cv.waitKey(0)
 # cv.destroyAllWindows()
 
-theta = np.pi/2
-print(theta)
-
-rotation_matrix = np.array([
-    [np.cos(theta), -np.sin(theta), cols],
-    [np.sin(theta), np.cos(theta), 0]
-    ])
-
-M = cv.getRotationMatrix2D(((cols-1)/2.0,(rows-1)/2.0),90,1)
-dst1 = cv.warpAffine(img,M,(cols,rows))
-
-# Image Rotation with openCV
-dst2 = cv.warpAffine(img, rotation_matrix, (cols,rows))
-
-cv.imshow('img 3', dst1)
-cv.imshow('img ', dst2)
-cv.waitKey(0)
-cv.destroyAllWindows()
-
-
