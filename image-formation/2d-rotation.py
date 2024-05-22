@@ -18,7 +18,7 @@ a = 1
 b = 0.2
 
 rotation_matrix = np.array([
-                            [a*np.cos(theta), b*-np.sin(theta), cols],
+    [a*np.cos(theta), b*-np.sin(theta), cols],
     [a*np.sin(theta), b*np.cos(theta), 0]
     ])
 
