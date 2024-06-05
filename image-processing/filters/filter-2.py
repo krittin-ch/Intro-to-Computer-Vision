@@ -9,7 +9,7 @@ path = 'C:/Users/kritt/Documents/GitHub/Intro-to-Computer-Vision/image-processin
 output_path = 'C:/Users/kritt/Documents/GitHub/Intro-to-Computer-Vision/image-processing/filters/'
 
 img = cv.imread(path + 'image1.jpg', cv.COLOR_BGR2RGB)
-img = cv.resize(img, (75, 75))
+img = cv.resize(img, (50, 50))
 
 def add_noise(image, noise_type, **kwargs):
     if noise_type == 'gaussian':
@@ -70,14 +70,14 @@ def n_order_laplacian_of_gaussian(image, n=1, kernel_size=5, sigma=1.0):
     return image
 
 # noised_img = img
-noised_img = add_noise(img, 'gaussian', var=0.5)
-# noised_img = add_noise(img, 's&p')
+# noised_img = add_noise(img, 'gaussian', var=0.5)
+noised_img = add_noise(img, 's&p')
 # noised_img = add_noise(img, 'poisson')
 # noised_img = add_noise(img, 'speckle')
 
 flt_img1 = apply_filter_to_color_image(noised_img, sobel_filter_x)
 flt_img2 = apply_filter_to_color_image(noised_img, sobel_filter_y)
-flt_img3 = flt_img1 + flt_img2
+flt_img3 = flt_img1 - flt_img2
 
 min_val, max_val = np.min(flt_img3), np.max(flt_img3)
 normalized_img = (flt_img3 - min_val) / (max_val - min_val) * 255
@@ -91,22 +91,22 @@ flt_img6 = noised_img + sharpening_factor * (noised_img - flt_img5)
 
 flt_img7 = laplacian_of_gaussian(noised_img)
 flt_img8 = second_order_laplacian_of_gaussian(noised_img)
-# flt_img9 = n_order_laplacian_of_gaussian(noised_img, n=10)
-
-flt_img9 = cv.integral(noised_img).astype(np.uint8)
+flt_img9 = n_order_laplacian_of_gaussian(noised_img, n=10)
+flt_img10 = cv.integral(noised_img).astype(np.uint8)
 
 filters = [
-    # ("Original Image", img),
+    ("Original Image", img),
     ("Noised Image", noised_img),
     ("Sobel Filter X", flt_img1),
     ("Sobel Filter Y", flt_img2),
-    ("Combined Sobel Filters", flt_img3),
+    # ("Combined Sobel Filters", flt_img3),
     ("Corner Filter", flt_img4),
     ("Gaussian Filter", flt_img5),
     ("Sharpened Image", flt_img6),
     ("Laplacian of Gaussian", flt_img7),
     ("Second Order Laplacian", flt_img8),
-    ("10th Order Laplacian", flt_img9)
+    # ("10th Order Laplacian", flt_img9),
+    ("Summed Area Integral Image", flt_img10)
 ]
 
 plt.figure(figsize=(15, 15))
