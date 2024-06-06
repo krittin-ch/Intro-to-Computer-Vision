@@ -76,6 +76,8 @@ noised_img = add_noise(img, 's&p')
 # noised_img = add_noise(img, 'speckle')
 
 flt_img1 = apply_filter_to_color_image(noised_img, sobel_filter_x)
+
+
 flt_img2 = apply_filter_to_color_image(noised_img, sobel_filter_y)
 flt_img3 = flt_img1 - flt_img2
 
