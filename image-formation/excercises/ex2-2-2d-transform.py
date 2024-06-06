@@ -1,8 +1,9 @@
 import cv2 as cv
 import numpy as np
+import os
 
-path = 'c:/Users/kritt/Documents/GitHub/Intro-to-Computer-Vision/image-formation/excercises/sample_images/'
-img = cv.imread(path + 'rectangular.jpg', cv.IMREAD_COLOR)
+path = 'sample-images/'
+img = cv.imread(os.path.join(path, 'rectangular.jpg'), cv.IMREAD_COLOR)
 
 rows, cols, ch = img.shape
 

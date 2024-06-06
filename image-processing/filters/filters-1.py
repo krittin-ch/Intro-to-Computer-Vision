@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import scipy.signal
 import os
 
-path = 'C:/Users/kritt/Documents/GitHub/Intro-to-Computer-Vision/image-processing/sample-images/'
-output_path = 'C:/Users/kritt/Documents/GitHub/Intro-to-Computer-Vision/image-processing/filters/'
+input_path = 'sample-images/'
+output_path = 'image-processing/filters/'
 
-img = cv.imread(path + 'image1.jpg', cv.IMREAD_COLOR)
+img = cv.imread(os.path.join(input_path, 'image3.jpg'), cv.COLOR_BGR2RGB)
 img = cv.resize(img, (750, 750))
 
 sobel_filter_x = np.array([[-1, 0, 1], 

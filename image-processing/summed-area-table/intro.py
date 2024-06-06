@@ -3,12 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-base_dir = 'C:/Users/kritt/Documents/GitHub/Intro-to-Computer-Vision/image-processing/'
+input_path = 'sample-images/'
+output_path = 'image-processing/summed-area-table'
 
-path = os.path.join(base_dir, 'sample-images/')
-output_path = os.path.join(base_dir, 'summed-area-table/')
-
-img = cv.imread(os.path.join(path, 'image1.jpg'), cv.IMREAD_GRAYSCALE)
+img = cv.imread(os.path.join(input_path, 'image1.jpg'), cv.IMREAD_GRAYSCALE)
 image = cv.resize(img, (100, 100))
 
 integral_image = cv.integral(image)

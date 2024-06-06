@@ -1,78 +1,51 @@
-import tkinter as tk
-from tkinter import filedialog
-import cv2
-from PIL import Image, ImageTk
+import cv2 as cv
 import numpy as np
+import matplotlib.pyplot as plt
+import os
 
-class ColorBalanceApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Color Balance Adjuster")
+# Input and output paths
+input_path = 'sample-images/'
+output_path = 'image-processing/excercises/'
 
-        self.image = None
-        self.original_image = None  # Added initialization for original image
-        self.img_label = tk.Label(root)
-        self.img_label.pack()
+# Read and resize the image (BGR format)
+img_bgr = cv.imread(os.path.join(input_path, 'image1.jpg'))
+img_bgr = cv.resize(img_bgr, (10, 10))
 
-        self.load_btn = tk.Button(root, text="Load Image", command=self.load_image)
-        self.load_btn.pack()
+# Convert BGR to RGB
+img_rgb = cv.cvtColor(img_bgr, cv.COLOR_BGR2RGB)
 
-        self.show_btn = tk.Button(root, text="Show Image", command=self.show_image, state=tk.DISABLED)
-        self.show_btn.pack()
+# Normalize the RGB image
+img_rgb_normalized = img_rgb / 255.0
 
-        self.red_scale = tk.Scale(root, from_=0, to=3, resolution=0.01, orient=tk.HORIZONTAL, label="Red Balance")
-        self.red_scale.pack()
+# Define the gamma value and its inverse
+gamma = 2.2
+inverse_gamma = 1.0 / gamma
 
-        self.green_scale = tk.Scale(root, from_=0, to=3, resolution=0.01, orient=tk.HORIZONTAL, label="Green Balance")
-        self.green_scale.pack()
+# Apply inverse gamma correction (gamma expansion)
+img_inverse_gamma_corrected = np.power(img_rgb_normalized, inverse_gamma)
 
-        self.blue_scale = tk.Scale(root, from_=0, to=3, resolution=0.01, orient=tk.HORIZONTAL, label="Blue Balance")
-        self.blue_scale.pack()
+# Transformation matrix from RGB to XYZ
+rgb_to_xyz_matrix = np.array([[0.412453, 0.357580, 0.180423],
+                              [0.212671, 0.715160, 0.072169],
+                              [0.019334, 0.119193, 0.950227]])
 
-        self.red_scale.set(1.0)
-        self.green_scale.set(1.0)
-        self.blue_scale.set(1.0)
+# Apply the transformation to the linearized image
+img_xyz = np.dot(img_inverse_gamma_corrected, rgb_to_xyz_matrix.T)
 
-    def load_image(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            self.image = cv2.imread(file_path)
-            self.original_image = self.image.copy()  # Keep a copy of the original image
-            self.show_btn.config(state=tk.NORMAL)  # Enable the "Show Image" button
+# Rescale XYZ image back to [0, 255] for visualization (optional, depends on use case)
+img_xyz_display = np.clip(img_xyz * 255, 0, 255).astype(np.uint8)
 
-    def show_image(self):
-        if self.image is not None:
-            self.image = self.update_image(self)
-            self.display_image(self.image)
+# Display the original, gamma corrected, and XYZ images
+plt.subplot(1, 3, 1)
+plt.imshow(img_rgb)
+plt.title('Original RGB Image')
 
-    def update_image(self, _=None):
-        if self.image is not None:
-            r_factor = self.red_scale.get()
-            g_factor = self.green_scale.get()
-            b_factor = self.blue_scale.get()
+plt.subplot(1, 3, 2)
+plt.imshow((img_inverse_gamma_corrected * 255).astype(np.uint8))
+plt.title('Inverse Gamma Corrected Image')
 
-            # Apply the color balance factors to each channel
-            self.image[:, :, 2] = np.clip(self.original_image[:, :, 2] * r_factor, 0, 255)  # Red channel
-            self.image[:, :, 1] = np.clip(self.original_image[:, :, 1] * g_factor, 0, 255)  # Green channel
-            self.image[:, :, 0] = np.clip(self.original_image[:, :, 0] * b_factor, 0, 255)  # Blue channel
+plt.subplot(1, 3, 3)
+plt.imshow(img_xyz_display)
+plt.title('Transformed XYZ Image')
 
-            # Convert the image to RGB format for display
-            img_rgb = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
-            img_pil = Image.fromarray(img_rgb)
-            img_tk = ImageTk.PhotoImage(img_pil)
-            self.img_label.config(image=img_tk)
-            self.img_label.image = img_tk
-            
-            return self.image
-
-    def display_image(self, img):
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img_pil = Image.fromarray(img_rgb)
-        img_tk = ImageTk.PhotoImage(img_pil)
-        self.img_label.config(image=img_tk)
-        self.img_label.image = img_tk
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = ColorBalanceApp(root)
-    root.mainloop()
+plt.show()

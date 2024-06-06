@@ -3,9 +3,8 @@ import numpy as np
 import cv2 as cv
 import collections
 
-img_path = 'image-formation/sample_images/'
+img_path = 'sample-images/'
 
-# img = Image.open(img_path + 'dog.jpg')
 img = cv.imread(img_path + 'dog.jpg', cv.IMREAD_GRAYSCALE)
 imgData = np.asarray(img)
 

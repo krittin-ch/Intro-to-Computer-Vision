@@ -5,10 +5,10 @@ import scipy.signal
 import os
 from skimage.util import random_noise
 
-path = 'C:/Users/kritt/Documents/GitHub/Intro-to-Computer-Vision/image-processing/sample-images/'
-output_path = 'C:/Users/kritt/Documents/GitHub/Intro-to-Computer-Vision/image-processing/filters/'
+input_path = 'sample-images/'
+output_path = 'image-processing/filters/'
 
-img = cv.imread(path + 'image1.jpg', cv.COLOR_BGR2RGB)
+img = cv.imread(os.path.join(input_path, 'image3.jpg'), cv.COLOR_BGR2RGB)
 img = cv.resize(img, (50, 50))
 
 def add_noise(image, noise_type, **kwargs):
