@@ -7,54 +7,42 @@ import os
 input_path = 'sample-images/'
 output_path = 'image-processing/filters/'
 
+# Create the output directory if it doesn't exist
+os.makedirs(output_path, exist_ok=True)
+
 # Read and resize the image
 img = cv.imread(os.path.join(input_path, 'image1.jpg'), cv.IMREAD_GRAYSCALE)
 img = cv.resize(img, (1000, 1000))
 
 # Function to convert image to binary
 def img_binary(img, threshold=128):
-    binary_img = (img > threshold).astype(np.uint8) * 255
+    _, binary_img = cv.threshold(img, threshold, 255, cv.THRESH_BINARY)
     return binary_img
-
-# Function to apply a convolution with a kernel
-def apply_convolution(img, kernel):
-    return cv.filter2D(img, -1, kernel)
 
 # Dilation
 def dilate_image(img, kernel_size=5):
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
-    output = apply_convolution(img, kernel)
-    output = (output > 0).astype(np.uint8) * 255
-    return output
+    return cv.dilate(img, kernel, iterations=1)
 
 # Erosion
 def erode_image(img, kernel_size=5):
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
-    output = apply_convolution(img, kernel)
-    output = (output == kernel_size * kernel_size * 255).astype(np.uint8) * 255
-    return output
+    return cv.erode(img, kernel, iterations=1)
 
 # Majority (local majority filter)
 def majority_filter(img, size=3):
-    padded_img = np.pad(img, ((size // 2, size // 2), (size // 2, size // 2)), mode='constant', constant_values=0)
-    output = np.zeros_like(img)
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            local_patch = padded_img[i:i + size, j:j + size]
-            output[i, j] = 255 if np.sum(local_patch) > (size * size * 255) / 2 else 0
-    return output
+    kernel = np.ones((size, size), np.uint8)
+    return cv.morphologyEx(img, cv.MORPH_CLOSE, kernel)
 
 # Opening (erosion followed by dilation)
 def opening_image(img, kernel_size=5):
-    eroded = erode_image(img, kernel_size)
-    opened = dilate_image(eroded, kernel_size)
-    return opened
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    return cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
 
 # Closing (dilation followed by erosion)
 def closing_image(img, kernel_size=5):
-    dilated = dilate_image(img, kernel_size)
-    closed = erode_image(dilated, kernel_size)
-    return closed
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    return cv.morphologyEx(img, cv.MORPH_CLOSE, kernel)
 
 # Convert the image to binary
 binary_img = img_binary(img)
@@ -67,7 +55,7 @@ opened_img = opening_image(binary_img)
 closed_img = closing_image(binary_img)
 
 # Plot and save the results using subplots
-fig, axes = plt.subplots(2, 3, figsize=(5, 5))
+fig, axes = plt.subplots(2, 3, figsize=(10, 7))
 axes = axes.ravel()
 
 titles = ['Original Binary Image', 'Dilated Image', 'Eroded Image', 
