@@ -2,21 +2,20 @@ import cv2 as cv
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-
+import scipy
 # Paths
 input_path = 'sample-images/'
 output_path = 'image-processing/filters/'
 
 # Read and resize the image
-img_bg = cv.imread(os.path.join(input_path, 'green-bg-1.jpg'), cv.IMREAD_COLOR)
-img = cv.imread(os.path.join(input_path, 'green-bg-2.jpg'), cv.IMREAD_COLOR)
-img_next = cv.imread(os.path.join(input_path, 'green-bg-3.jpg'), cv.IMREAD_COLOR)
+img_bg = cv.imread(os.path.join(input_path, 'view-bg.jpg'), cv.IMREAD_COLOR)
+img = cv.imread(os.path.join(input_path, 'view.jpg'), cv.IMREAD_COLOR)
 
 l = 1024
 
 img = cv.resize(img, (l, l))
 img_bg = cv.resize(img_bg, (l, l))
-img_next = cv.resize(img_next, (l, l))
+# img_next = cv.resize(img_next, (l, l))
 
 def compute_background(image_sequence):
     """
@@ -61,35 +60,39 @@ def classify_foreground(background_mean, background_variance, new_frame, thresho
     
     return foreground_mask
 
+background_mean, background_variance = compute_background(img_bg)
 
-# background_mean, background_variance = compute_background(img_bg)
-# foreground_mask = classify_foreground(background_mean, background_variance, img_next, threshold=50)
+def adjust_foreground_mask(foreground_mask):
+    # Create a mask for pixels where any R, G, or B value is < 100
+    # low_mask = np.any(foreground_mask < 200, axis=-1)
+    # Create a mask for pixels where any R, G, or B value is > 200
+    high_mask = np.any(foreground_mask > 200, axis=-1)
+    
+    # Set these pixels to 0
+    # foreground_mask[low_mask] = 0
+    # Set these pixels to 255
+    foreground_mask[high_mask] = 255
+    
+    return foreground_mask
 
-foreground_mask = img_next - img_bg
+
+corner_filter = np.array([[-1, -2, 1], 
+                          [-2, 4, -2], 
+                          [-1, -2, 1]]) / 4
+
+def apply_filter_to_color_image(image, filter_kernel):
+    channels = cv.split(image)
+    filtered_channels = [scipy.signal.convolve2d(channel, filter_kernel, mode='same') for channel in channels]
+    return cv.merge(filtered_channels)
+
+foreground_mask = abs(img - img_bg)
 foreground_mask = np.uint8(foreground_mask)
 
-import torch
+# foreground_mask = adjust_foreground_mask(foreground_mask)
 
-import segmentation_models_pytorch as smp
+foreground_mask = apply_filter_to_color_image(adjust_foreground_mask(foreground_mask), corner_filter).astype(np.uint8)
 
-in_channels = 3 
-out_channels = 1
-
-model = smp.Unet(encoder_name="resnet34", in_channels=in_channels, classes=out_channels, encoder_weights="imagenet")
-
-                 
-image_tensor = torch.tensor(img_next, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)
-
-# Perform inference to get the segmentation mask
-with torch.no_grad():
-    output = model(image_tensor)
-
-# Post-process the output to get the segmentation mask
-# You may need to apply thresholding or other operations to get a binary mask
-segmentation_mask = output.squeeze().cpu().numpy()
-segmentation_mask = np.where(segmentation_mask > 0.5, 255, 0)  # Example thresholding, adjust as needed
-
-
+# print(foreground_mask)
 
 plt.subplot(1,3,1)
 plt.imshow(cv.cvtColor(img, cv.COLOR_BGR2RGB))
@@ -100,7 +103,7 @@ plt.imshow(cv.cvtColor(img_bg, cv.COLOR_BGR2RGB))
 plt.title('Backround Image')
 
 plt.subplot(1,3,3)
-plt.imshow(segmentation_mask, cmap='gray')
+plt.imshow(cv.cvtColor(foreground_mask, cv.COLOR_BGR2RGB))
 plt.title('Background Removed Image')
 
 plt.show()
