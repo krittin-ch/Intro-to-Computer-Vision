@@ -3,6 +3,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import scipy
+
 # Paths
 input_path = 'sample-images/'
 output_path = 'image-processing/filters/'
