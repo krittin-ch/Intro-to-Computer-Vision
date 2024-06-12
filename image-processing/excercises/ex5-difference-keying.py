@@ -3,10 +3,11 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import scipy
+import matplotlib
 
 # Paths
 input_path = 'sample-images/'
-output_path = 'image-processing/filters/'
+output_path = 'image-processing/excercises/'
 
 # Read and resize the image
 img_bg = cv.imread(os.path.join(input_path, 'view-bg.jpg'), cv.IMREAD_COLOR)
@@ -48,30 +49,28 @@ def apply_median_blur(img_fg, kernel):
     return cv.merge([b, g, r])
 
 
-bilateral_filtered = cv.bilateralFilter(img_fg, 9, 75, 75)
 
 median_filtered = apply_median_blur(img_fg, 17)
-median_filtered = apply_median_blur(median_filtered, 5)
-
-nlm_denoised = cv.fastNlMeansDenoisingColored(img_fg, None, 10, 10, 7, 21)
-
 
 num_labels, labels, stats, centroids = cv.connectedComponentsWithStats(cv.cvtColor(median_filtered, cv.COLOR_BGRA2GRAY), connectivity=8)
 
-print(num_labels, labels, stats, centroids)
+median_detected = median_filtered.copy()
+img_detected = img.copy()
 
 for i in range(1, num_labels):  # Skip background label 0
     centroid_x, centroid_y = centroids[i]
-    print(f"Centroid of object {i}: ({centroid_x}, {centroid_y})")
+    x, y, w, h = stats[i][cv.CC_STAT_LEFT], stats[i][cv.CC_STAT_TOP], stats[i][cv.CC_STAT_WIDTH], stats[i][cv.CC_STAT_HEIGHT]
+    aspect_ratio_tolerance = 0.2
 
-# Visualize the centroids on the image
-plt.imshow(cv.cvtColor(median_filtered, cv.COLOR_GRAY2RGB))
-for i in range(1, num_labels):  # Skip background label 0
-    centroid_x, centroid_y = centroids[i]
-    plt.scatter(centroid_x, centroid_y, color='red', s=30)
-plt.title('Filtered Image with Centroids')
-plt.show()
-'''
+    thickness = 10
+    if abs(w / h - 1) < aspect_ratio_tolerance:
+        cv.rectangle(median_detected, (int(x), int(y)), (int(x + w), int(y + h)), (218, 112, 214), thickness-5)
+        cv.rectangle(img_detected, (int(x), int(y)), (int(x + w), int(y + h)), (218, 112, 214), thickness-5)
+    cv.circle(median_detected, (int(centroid_x), int(centroid_y)), 5, (0, 255, 0), thickness)
+    cv.circle(img_detected, (int(centroid_x), int(centroid_y)), 5, (0, 255, 0), thickness)
+
+
+
 # Set figure size
 plt.figure(figsize=(15, 10))
 
@@ -88,18 +87,24 @@ plt.imshow(cv.cvtColor(img_fg, cv.COLOR_BGR2RGB))
 plt.title('Background Removed Image')
 
 plt.subplot(2, 3, 4)
-plt.imshow(cv.cvtColor(bilateral_filtered, cv.COLOR_BGR2RGB))
+plt.imshow(cv.cvtColor(median_filtered, cv.COLOR_BGR2RGB))
 plt.title('Bilateral Filtered Image')
 
 plt.subplot(2, 3, 5)
-plt.imshow(cv.cvtColor(median_filtered, cv.COLOR_BGR2RGB))
-plt.title('Median Filtered Image')
+plt.imshow(cv.cvtColor(median_detected, cv.COLOR_BGR2RGB))
+plt.title('Median Detected Image')
 
 plt.subplot(2, 3, 6)
-plt.imshow(cv.cvtColor(nlm_denoised, cv.COLOR_BGR2RGB))
-plt.title('NLM Denoised Image')
+plt.imshow(cv.cvtColor(img_detected, cv.COLOR_BGR2RGB))
+plt.title('Object Detected Image')
 
+plt.suptitle('Filtered Image with Centroids')
 plt.tight_layout()
+
+plt.savefig(os.path.join(output_path, 'output-detection.png'))
 plt.show()
 
-'''
+
+# cv.imshow('img', img_detected)
+# cv.waitKey(0)
+# cv.destroyAllWindows()
