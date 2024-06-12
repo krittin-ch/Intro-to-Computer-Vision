@@ -3,6 +3,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import scipy
+import statistics
 
 # Paths
 input_path = 'sample-images/'
@@ -18,60 +19,10 @@ img = cv.resize(img, (l, l))
 img_bg = cv.resize(img_bg, (l, l))
 # img_next = cv.resize(img_next, (l, l))
 
-def compute_background(image_sequence):
-    """
-    Compute the mean and variance of each pixel in the input image sequence.
-    
-    Parameters:
-        image_sequence (list of numpy arrays): Input image sequence.
-        
-    Returns:
-        background_mean (numpy array): Mean image representing the background.
-        background_variance (numpy array): Variance image representing the background.
-    """
-    # Convert image sequence to numpy array
-    image_sequence = np.array(image_sequence)
-    
-    # Compute mean and variance along the time axis
-    background_mean = np.mean(image_sequence, axis=0)
-    background_variance = np.var(image_sequence, axis=0)
-    
-    return background_mean, background_variance
-
-def classify_foreground(background_mean, background_variance, new_frame, threshold=50):
-    """
-    Classify each pixel in the new frame as foreground or background based on the mean and variance.
-    
-    Parameters:
-        background_mean (numpy array): Mean image representing the background.
-        background_variance (numpy array): Variance image representing the background.
-        new_frame (numpy array): New frame to classify.
-        threshold (int): Threshold value for classifying foreground pixels.
-        
-    Returns:
-        foreground_mask (numpy array): Binary mask indicating foreground pixels (1) and background pixels (0).
-    """
-    # Compute absolute difference between new frame and background mean
-    abs_diff = np.abs(new_frame - background_mean)
-    
-    # abs_diff = np.abs(new_frame - background_variance)
-    
-    # Create binary mask based on threshold
-    foreground_mask = np.where(abs_diff > threshold, 1, 0)
-    
-    return foreground_mask
-
-background_mean, background_variance = compute_background(img_bg)
 
 def adjust_foreground_mask(foreground_mask):
-    # Create a mask for pixels where any R, G, or B value is < 100
-    # low_mask = np.any(foreground_mask < 200, axis=-1)
-    # Create a mask for pixels where any R, G, or B value is > 200
     high_mask = np.any(foreground_mask > 200, axis=-1)
     
-    # Set these pixels to 0
-    # foreground_mask[low_mask] = 0
-    # Set these pixels to 255
     foreground_mask[high_mask] = 255
     
     return foreground_mask
@@ -86,14 +37,33 @@ def apply_filter_to_color_image(image, filter_kernel):
     filtered_channels = [scipy.signal.convolve2d(channel, filter_kernel, mode='same') for channel in channels]
     return cv.merge(filtered_channels)
 
-foreground_mask = abs(img - img_bg)
-foreground_mask = np.uint8(foreground_mask)
+# img = img[:300, :300]
+# img_bg = img_bg[:300, :300]
 
-# foreground_mask = adjust_foreground_mask(foreground_mask)
+def apply_variance_check(img, img_bg, v):
+    new_img = np.zeros(img.shape)
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            var = ((img[i,j] - img_bg[i,j])^2)/255
+            # print(var)
+            if np.all(var < v):
+                new_img[i,j] = img[i,j]
+            else :
+                new_img[i,j] = 0
+    return new_img.astype(np.uint8)
 
-foreground_mask = apply_filter_to_color_image(adjust_foreground_mask(foreground_mask), corner_filter).astype(np.uint8)
 
-# print(foreground_mask)
+img_fg = apply_variance_check(img, img_bg, 0.8)
+bilateral_filtered = cv.bilateralFilter(img_fg, 9, 75, 75)
+
+
+b, g, r = cv.split(img_fg)
+b = cv.medianBlur(b, 5)
+g = cv.medianBlur(g, 5)
+r = cv.medianBlur(r, 5)
+median_filtered = cv.merge([b, g, r])
+
+nlm_denoised = cv.fastNlMeansDenoisingColored(img_fg, None, 10, 10, 7, 21)
 
 plt.subplot(1,3,1)
 plt.imshow(cv.cvtColor(img, cv.COLOR_BGR2RGB))
@@ -104,22 +74,20 @@ plt.imshow(cv.cvtColor(img_bg, cv.COLOR_BGR2RGB))
 plt.title('Backround Image')
 
 plt.subplot(1,3,3)
-plt.imshow(cv.cvtColor(foreground_mask, cv.COLOR_BGR2RGB))
+plt.imshow(cv.cvtColor(img_fg, cv.COLOR_BGR2RGB))
 plt.title('Background Removed Image')
 
-plt.show()
+plt.subplot(2,3,4)
+plt.imshow(cv.cvtColor(bilateral_filtered, cv.COLOR_BGR2RGB))
+plt.title('Background Removed Image')
 
-# # Example usage
-# if __name__ == "__main__":
-#     # Load input video sequence
-#     video_sequence = [...]  # Load or capture video frames
-    
-#     # Compute background model
-#     background_mean, background_variance = compute_background(video_sequence)
-    
-#     # Process each frame in the video sequence
-#     for frame in video_sequence:
-#         # Classify foreground pixels
-#         foreground_mask = classify_foreground(background_mean, background_variance, frame)
-        
-#         # Optionally, perform further processing such as alpha channel computation, compositing, morphology, etc.
+plt.subplot(2,3,5)
+plt.imshow(cv.cvtColor(median_filtered, cv.COLOR_BGR2RGB))
+plt.title('Background Removed Image')
+
+plt.subplot(2,3,6)
+plt.imshow(cv.cvtColor(nlm_denoised, cv.COLOR_BGR2RGB))
+plt.title('Background Removed Image')
+
+
+plt.show()
