@@ -79,7 +79,7 @@ flt_img1 = apply_filter_to_color_image(noised_img, sobel_filter_x)
 
 
 flt_img2 = apply_filter_to_color_image(noised_img, sobel_filter_y)
-flt_img3 = flt_img1 - flt_img2
+flt_img3 = flt_img1 + flt_img2
 
 min_val, max_val = np.min(flt_img3), np.max(flt_img3)
 normalized_img = (flt_img3 - min_val) / (max_val - min_val) * 255
@@ -101,14 +101,14 @@ filters = [
     ("Noised Image", noised_img),
     ("Sobel Filter X", flt_img1),
     ("Sobel Filter Y", flt_img2),
-    # ("Combined Sobel Filters", flt_img3),
+    ("Combined Sobel Filters", flt_img3),
     ("Corner Filter", flt_img4),
     ("Gaussian Filter", flt_img5),
     ("Sharpened Image", flt_img6),
     ("Laplacian of Gaussian", flt_img7),
     ("Second Order Laplacian", flt_img8),
     # ("10th Order Laplacian", flt_img9),
-    ("Summed Area Integral Image", flt_img10)
+    # ("Summed Area Integral Image", flt_img10)
 ]
 
 plt.figure(figsize=(15, 15))
