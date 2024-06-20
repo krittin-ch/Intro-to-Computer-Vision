@@ -30,8 +30,9 @@ corner_filter = np.array([[-1, -2, 1],
                           [-1, -2, 1]]) / 4
 
 bilinear_filter = np.array([[1, 1, 1], 
-                     [1, 1, 1], 
-                     [1, 1, 1]]) / 16
+                            [1, 1, 1], 
+                            [1, 1, 1]]) / 16
+
 
 edge_filter = np.array([[-1, -1, -1], 
                         [-1, 8, -1], 
