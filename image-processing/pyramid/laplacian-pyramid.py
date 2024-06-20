@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os
 
 input_path = 'sample-images/'
-output_path = 'image-processing/filters/'
+output_path = 'image-processing/pyramid/'
 
 # Read and resize the image
 img = cv.imread(os.path.join(input_path, 'image1.jpg'), cv.IMREAD_COLOR)
