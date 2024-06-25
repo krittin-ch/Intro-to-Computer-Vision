@@ -51,7 +51,7 @@ output_path = 'image-processing/filters/'
 
 # Read and resize the image
 I = cv.imread(os.path.join(input_path, 'view.jpg'), cv.IMREAD_COLOR)
-p = cv.imread(os.path.join(input_path, 'dog.jpg'), cv.IMREAD_COLOR)
+p = cv.imread(os.path.join(input_path, 'dog .jpg'), cv.IMREAD_COLOR)
 
 I = cv.resize(I, (1000, 1000))
 p = cv.resize(p, (1000, 1000))
